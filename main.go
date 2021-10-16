@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"text/template"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
@@ -77,6 +78,7 @@ func (h *withRPCHandle) evalParams(
 		}
 
 		for _, p := range params {
+			// TODO need to think about the encoding
 			_ = p
 			msg.Data = append(msg.Data, []byte{}...)
 		}
@@ -85,11 +87,27 @@ func (h *withRPCHandle) evalParams(
 		if err := h.h.CallContext(
 			context.TODO(), &hex, "eth_call", toCallArg(msg), "latest",
 		); err != nil {
-			// TODO do something with error to give to client
+			fmt.Println("some error on eval", err)
 			return
 		}
 
-		fmt.Fprintf(w, "contract call result %s\n", hex)
+		tmpl, _ := template.New("").Parse(`
+<!doctype html> 
+<head>
+ <link rel="stylesheet" href="https/cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+<title> evalled some code whatever </title>
+</head>
+<body>
+<div> 
+  <p> something {{ .HexResult }} </p>
+</body>
+`)
+
+		if err := tmpl.Execute(w, nil); err != nil {
+			fmt.Println("why an issue right", err)
+		}
+
+		fmt.Println("contract result", struct{ HexResult string }{HexResult: common.Bytes2Hex(hex)})
 	}
 }
 
