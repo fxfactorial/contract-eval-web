@@ -99,10 +99,12 @@ func (h *withRPCHandle) evalParams(
 				return
 			}
 			args = append(args, abi.Argument{Type: t})
+
 			switch p {
 			case "string":
+				rawArgs = append(rawArgs, p)
 			case "bytes":
-			//
+				rawArgs = append(rawArgs, common.Hex2Bytes(p))
 			// assume its a number thing
 			default:
 				num, ok := new(big.Int).SetString(p, 10)
@@ -110,10 +112,8 @@ func (h *withRPCHandle) evalParams(
 					fmt.Fprintf(w, "oops this is crap input as number %s", p)
 					return
 				}
-
 				rawArgs = append(rawArgs, num)
 			}
-
 		}
 
 		packed, err := args.Pack(rawArgs...)
