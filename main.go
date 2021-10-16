@@ -92,7 +92,7 @@ func (h *withRPCHandle) evalParams(
 			rawArgs []interface{}
 		)
 
-		for _, p := range parsed {
+		for i, p := range parsed {
 			t, err := abi.NewType(p, "", nil)
 			if err != nil {
 				fmt.Fprintf(w, "oops %v", err)
@@ -100,14 +100,16 @@ func (h *withRPCHandle) evalParams(
 			}
 			args = append(args, abi.Argument{Type: t})
 
+			val := params[i]
+
 			switch p {
 			case "string":
-				rawArgs = append(rawArgs, p)
+				rawArgs = append(rawArgs, val)
 			case "bytes":
-				rawArgs = append(rawArgs, common.Hex2Bytes(p))
+				rawArgs = append(rawArgs, common.Hex2Bytes(val))
 			// assume its a number thing
 			default:
-				num, ok := new(big.Int).SetString(p, 10)
+				num, ok := new(big.Int).SetString(val, 10)
 				if !ok {
 					fmt.Fprintf(w, "oops this is crap input as number %s", p)
 					return
@@ -206,7 +208,6 @@ func parse(s string) ([]string, error) {
 var sigRegex = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*\((?:(?:(?:(?:u?)int(?:|8|16|24|32|40|48|56|64|72|80|88|96|104|112|120|128|136|144|152|160|168|176|184|192|200|208|216|224|232|240|248|256)|byte(?:s?)(?:|(?:[1-9]|[12][0-9]|3[0-2]))|address|bool|string)(?:\[(?:\d*)\])*)(?:,(?:(?:(?:u?)int(?:|8|16|24|32|40|48|56|64|72|80|88|96|104|112|120|128|136|144|152|160|168|176|184|192|200|208|216|224|232|240|248|256)|byte(?:s?)(?:|(?:[1-9]|[12][0-9]|3[0-2]))|address|bool|string)+(?:\[(?:\d*)\])*))*)*\)$`)
 
 func main() {
-
 	if err := program(); err != nil {
 		fmt.Printf("FATAL: %+v\n", err)
 		os.Exit(1)
