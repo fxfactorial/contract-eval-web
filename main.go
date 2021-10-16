@@ -12,6 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/julienschmidt/httprouter"
 )
@@ -72,11 +73,10 @@ func (h *withRPCHandle) evalParams(
 		methodSig := common.Hex2Bytes(ps.ByName("methodSig"))
 		msg := ethereum.CallMsg{
 			To:   &addr,
-			Data: methodSig,
+			Data: crypto.Keccak256(methodSig)[:4],
 		}
 
 		for _, p := range params {
-			// TODO come back to it
 			_ = p
 			msg.Data = append(msg.Data, []byte{}...)
 		}
@@ -126,10 +126,7 @@ func program() error {
 
 	router.GET("/", Index)
 	router.GET("/:addr/:methodSig/*contractParams", with.evalParams)
-
 	log.Fatal(http.ListenAndServe(":8080", router))
-
-	_ = handle
 	return nil
 }
 
